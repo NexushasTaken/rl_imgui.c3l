@@ -27,10 +27,9 @@
 *   SOFTWARE.
 *
 **********************************************************************************************/
-module impl;
+module rl;
 
 import imgui;
-import rl;
 import rlgl;
 
 import std::math;
@@ -55,10 +54,10 @@ tlocal bool last_alt_pressed = false;
 tlocal bool last_super_pressed = false;
 
 // internal only functions
-fn bool rlImGuiIsControlDown() { return rl::isKeyDown(rl::KEY_RIGHT_CONTROL) || rl::isKeyDown(rl::KEY_LEFT_CONTROL); }
-fn bool rlImGuiIsShiftDown() { return rl::isKeyDown(rl::KEY_RIGHT_SHIFT) || rl::isKeyDown(rl::KEY_LEFT_SHIFT); }
-fn bool rlImGuiIsAltDown() { return rl::isKeyDown(rl::KEY_RIGHT_ALT) || rl::isKeyDown(rl::KEY_LEFT_ALT); }
-fn bool rlImGuiIsSuperDown() { return rl::isKeyDown(rl::KEY_RIGHT_SUPER) || rl::isKeyDown(rl::KEY_LEFT_SUPER); }
+fn bool rlImGuiIsControlDown() @local { return rl::isKeyDown(rl::KEY_RIGHT_CONTROL) || rl::isKeyDown(rl::KEY_LEFT_CONTROL); }
+fn bool rlImGuiIsShiftDown() @local { return rl::isKeyDown(rl::KEY_RIGHT_SHIFT) || rl::isKeyDown(rl::KEY_LEFT_SHIFT); }
+fn bool rlImGuiIsAltDown() @local { return rl::isKeyDown(rl::KEY_RIGHT_ALT) || rl::isKeyDown(rl::KEY_LEFT_ALT); }
+fn bool rlImGuiIsSuperDown() @local { return rl::isKeyDown(rl::KEY_RIGHT_SUPER) || rl::isKeyDown(rl::KEY_LEFT_SUPER); }
 
 fn void reload_fonts()
 {
@@ -272,18 +271,6 @@ $endif
     platformIO.platform_clipboard_user_data = null;
 }
 
-fn void rlImGuiEndInitImGui()
-{
-    imgui::set_current_context(global_context);
-
-    //setupFontAwesome();
-
-    setupMouseCursors();
-
-    setupBackend();
-
-    reload_fonts();
-}
 
 fn void setupKeymap() @private
 {
@@ -406,222 +393,6 @@ fn void setupGlobals() @private
     last_shift_pressed = false;
     last_alt_pressed = false;
     last_super_pressed = false;
-}
-
-fn void rlImGuiBeginInitImGui()
-{
-    setupGlobals();
-    if (global_context == null) {
-        global_context = imgui::create_context();
-    }
-    setupKeymap();
-
-    ImGuiIO* io = imgui::get_io();
-    io.fonts.add_font_default();
-}
-
-fn void rlImGuiSetup(bool dark)
-{
-    rlImGuiBeginInitImGui();
-
-    if (dark) {
-        imgui::style_colors_dark();
-    } else {
-        imgui::style_colors_light();
-    }
-
-    rlImGuiEndInitImGui();
-}
-
-fn void rlImGuiReloadFonts()
-{
-    imgui::set_current_context(global_context);
-
-    reload_fonts();
-}
-
-fn void rlImGuiBegin()
-{
-    imgui::set_current_context(global_context);
-    rlImGuiBeginDelta(rl::getFrameTime());
-}
-
-fn void rlImGuiBeginDelta(float deltaTime)
-{
-    imgui::set_current_context(global_context);
-
-    imGuiNewFrame(deltaTime);
-    imGui_ImplRaylib_ProcessEvents();
-    imgui::new_frame();
-}
-
-fn void rlImGuiEnd()
-{
-    imgui::set_current_context(global_context);
-    imgui::render();
-    imGui_ImplRaylib_RenderDrawData(imgui::get_draw_data());
-}
-
-fn void rlImGuiShutdown()
-{
-    if (global_context == null) {
-        return;
-    }
-
-    imgui::set_current_context(global_context);
-    imGui_ImplRaylib_Shutdown();
-
-    imgui::destroy_context(global_context);
-    global_context = null;
-}
-
-fn void rlImGuiImage(Texture* image)
-{
-    if (!image) {
-        return;
-    }
-    
-    if (global_context) {
-        imgui::set_current_context(global_context);
-    }
-    
-    imgui::image((ImTextureID)image, ImVec2{(float)(image.width), (float)(image.height)});
-}
-
-fn bool rlImGuiImageButton(ZString name, Texture* image)
-{
-    if (!image) {
-        return false;
-    }
-    
-    if (global_context) {
-        imgui::set_current_context(global_context);
-    }
-    
-    return imgui::image_button(name, (ImTextureID)image, ImVec2{(float)(image.width), (float)(image.height)});
-}
-
-fn bool rlImGuiImageButtonSize(ZString name, Texture* image, ImVec2 size)
-{
-    if (!image) {
-        return false;
-    }
-
-    if (global_context) {
-        imgui::set_current_context(global_context);
-    }
-   
-    return imgui::image_button(name, (ImTextureID)image, size);
-}
-
-fn void rlImGuiImageSize(Texture* image, int width, int height)
-{
-    if (!image) {
-        return;
-    }
-    
-    if (global_context) {
-        imgui::set_current_context(global_context);
-    }
-    
-    imgui::image((ImTextureID)image, ImVec2{(float)(width), (float)(height)});
-}
-
-fn void rlImGuiImageSizeV(Texture* image, Vector2 size)
-{
-    if (!image) {
-        return;
-    }
-    
-    if (global_context) {
-        imgui::set_current_context(global_context);
-    }
-    
-    imgui::image((ImTextureID)image, ImVec2{size.x, size.y});
-}
-
-fn void rlImGuiImageRect(Texture* image, int destWidth, int destHeight, Rectangle sourceRect)
-{
-    if (!image) {
-        return;
-    }
-    
-    if (global_context) {
-        imgui::set_current_context(global_context);
-    }
-    
-    ImVec2 uv0;
-    ImVec2 uv1;
-
-    if (sourceRect.width < 0)
-    {
-        uv0.x = -((float)sourceRect.x / image.width);
-        uv1.x = (uv0.x - (float)(math::abs(sourceRect.width) / image.width));
-    }
-    else
-    {
-        uv0.x = (float)sourceRect.x / image.width;
-        uv1.x = uv0.x + (float)(sourceRect.width / image.width);
-    }
-
-    if (sourceRect.height < 0)
-    {
-        uv0.y = -((float)sourceRect.y / image.height);
-        uv1.y = (uv0.y - (float)(math::abs(sourceRect.height) / image.height));
-    }
-    else
-    {
-        uv0.y = (float)sourceRect.y / image.height;
-        uv1.y = uv0.y + (float)(sourceRect.height / image.height);
-    }
-
-    imgui::image((ImTextureID)image, ImVec2{(float)(destWidth), (float)(destHeight)}, uv0, uv1);
-}
-
-fn void rlImGuiImageRenderTexture(RenderTexture* image)
-{
-    if (!image) {
-        return;
-    }
-    
-    if (global_context) {
-        imgui::set_current_context(global_context);
-    }
-    
-    rlImGuiImageRect(&image.texture, image.texture.width, image.texture.height, Rectangle{ 0,0, (float)(image.texture.width), -(float)(image.texture.height) });
-}
-
-fn void rlImGuiImageRenderTextureFit(RenderTexture* image, bool center)
-{
-    if (!image) {
-        return;
-    }
-    
-    if (global_context) {
-        imgui::set_current_context(global_context);
-    }
-
-    ImVec2 area = imgui::get_content_region_avail();
-
-    float scale =  area.x / image.texture.width;
-
-    float y = image.texture.height * scale;
-    if (y > area.y)
-    {
-        scale = area.y / image.texture.height;
-    }
-
-    int sizeX = (int)(image.texture.width * scale);
-    int sizeY = (int)(image.texture.height * scale);
-
-    if (center)
-    {
-        imgui::set_cursor_pos_x(0);
-        imgui::set_cursor_pos_x(area.x/2.0f - sizeX/2.0f);
-        imgui::set_cursor_pos_y(imgui::get_cursor_pos_y() + (area.y / 2.0f - sizeY / 2.0f));
-    }
-
-    rlImGuiImageRect(&image.texture, sizeX, sizeY, Rectangle{ 0,0, (float)(image.texture.width), -(float)(image.texture.height) });
 }
 
 // raw ImGui backend API
@@ -824,5 +595,345 @@ fn bool imGui_ImplRaylib_ProcessEvents()
     }
 
     return true;
+}
+
+//----------------------------------------------------------------------------------
+// High level API. This API is designed in the style of raylib and meant to work with reaylib code.
+// It will manage it's own ImGui context and call common ImGui functions (like NewFrame and Render) for you
+// for a lower level API that matches the other ImGui platforms, please see imgui_impl_raylib.h
+//----------------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------------
+// Advanced StartupAPI
+//----------------------------------------------------------------------------------
+
+<*
+ Sets up ImGui, loads fonts and themes
+ Calls imGui_ImplRaylib_Init and sets the theme. Will install Font awesome by default
+ @param darkTheme "when true(default) the dark theme is used, when false the light theme is used"
+*>
+fn void rlImGuiSetup(bool darkTheme)
+{
+    rlImGuiBeginInitImGui();
+
+    if (darkTheme) {
+        imgui::style_colors_dark();
+    } else {
+        imgui::style_colors_light();
+    }
+
+    rlImGuiEndInitImGui();
+}
+
+<*
+ Starts a new ImGui Frame
+ Calls imGui_ImplRaylib_NewFrame, imGui_ImplRaylib_ProcessEvents, and ImGui::NewFrame together
+*>
+fn void rlImGuiBegin()
+{
+    imgui::set_current_context(global_context);
+    rlImGuiBeginDelta(rl::getFrameTime());
+}
+
+<*
+ Ends an ImGui frame and submits all ImGui drawing to raylib for processing.
+ Calls ImGui:Render, an d imGui_ImplRaylib_RenderDrawData to draw to the current raylib render target
+*>
+fn void rlImGuiEnd()
+{
+    imgui::set_current_context(global_context);
+    imgui::render();
+    imGui_ImplRaylib_RenderDrawData(imgui::get_draw_data());
+}
+
+<*
+ Cleanup ImGui and unload font atlas
+ Calls imGui_ImplRaylib_Shutdown
+*>
+fn void rlImGuiShutdown()
+{
+    if (global_context == null) {
+        return;
+    }
+
+    imgui::set_current_context(global_context);
+    imGui_ImplRaylib_Shutdown();
+
+    imgui::destroy_context(global_context);
+    global_context = null;
+}
+
+//----------------------------------------------------------------------------------
+// Advanced StartupAPI
+//----------------------------------------------------------------------------------
+
+<*
+ Custom initialization. Not needed if you call rlImGuiSetup. Only needed if you want to add custom setup code.
+ must be followed by rlImGuiEndInitImGui
+ Called by imGui_ImplRaylib_Init, and does the first part of setup, before fonts are rendered
+*>
+fn void rlImGuiBeginInitImGui()
+{
+    setupGlobals();
+    if (global_context == null) {
+        global_context = imgui::create_context();
+    }
+    setupKeymap();
+
+    ImGuiIO* io = imgui::get_io();
+    io.fonts.add_font_default();
+}
+
+<*
+ End Custom initialization. Not needed if you call rlImGuiSetup. Only needed if you want to add custom setup code.
+ must be proceeded by rlImGuiBeginInitImGui
+ Called by imGui_ImplRaylib_Init and does the second part of setup, and renders fonts.
+*>
+fn void rlImGuiEndInitImGui()
+{
+    imgui::set_current_context(global_context);
+
+    //setupFontAwesome();
+
+    setupMouseCursors();
+
+    setupBackend();
+
+    reload_fonts();
+}
+
+<*
+ Forces the font texture atlas to be recomputed and re-cached
+*>
+fn void rlImGuiReloadFonts()
+{
+    imgui::set_current_context(global_context);
+
+    reload_fonts();
+}
+
+//----------------------------------------------------------------------------------
+// Advanced Update API
+//----------------------------------------------------------------------------------
+
+<*
+ Starts a new ImGui Frame with a specified delta time
+ @param deltaTime "delta time, any value < 0 will use raylib GetFrameTime"
+*>
+fn void rlImGuiBeginDelta(float deltaTime)
+{
+    imgui::set_current_context(global_context);
+
+    imGuiNewFrame(deltaTime);
+    imGui_ImplRaylib_ProcessEvents();
+    imgui::new_frame();
+}
+
+//----------------------------------------------------------------------------------
+// ImGui Image API extensions
+// Purely for convenience in working with raylib textures as images.
+// If you want to call ImGui image functions directly, simply pass them the pointer to the texture.
+//----------------------------------------------------------------------------------
+
+<*
+ Draw a texture as an image in an ImGui Context
+ Uses the current ImGui Cursor position and the full texture size.
+ @param image "The raylib texture to draw"
+*>
+fn void rlImGuiImage(Texture* image)
+{
+    if (!image) {
+        return;
+    }
+    
+    if (global_context) {
+        imgui::set_current_context(global_context);
+    }
+    
+    imgui::image((ImTextureID)image, ImVec2{(float)(image.width), (float)(image.height)});
+}
+
+<*
+ Draw a texture as an image in an ImGui Context at a specific size
+ Uses the current ImGui Cursor position and the specified width and height
+ The image will be scaled up or down to fit as needed
+ @param image "The raylib texture to draw"
+ @param width "The width of the drawn image"
+ @param height "The height of the drawn image"
+*>
+fn void rlImGuiImageSize(Texture* image, int width, int height)
+{
+    if (!image) {
+        return;
+    }
+    
+    if (global_context) {
+        imgui::set_current_context(global_context);
+    }
+    
+    imgui::image((ImTextureID)image, ImVec2{(float)(width), (float)(height)});
+}
+
+<*
+ Draw a texture as an image in an ImGui Context at a specific size
+ Uses the current ImGui Cursor position and the specified size
+ The image will be scaled up or down to fit as needed
+ @param image "The raylib texture to draw"
+ @param size "The size of drawn image"
+*>
+fn void rlImGuiImageSizeV(Texture* image, Vector2 size)
+{
+    if (!image) {
+        return;
+    }
+    
+    if (global_context) {
+        imgui::set_current_context(global_context);
+    }
+    
+    imgui::image((ImTextureID)image, ImVec2{size.x, size.y});
+}
+
+<*
+ Draw a portion texture as an image in an ImGui Context at a defined size
+ Uses the current ImGui Cursor position and the specified size
+ The image will be scaled up or down to fit as needed
+ @param image "The raylib texture to draw"
+ @param destWidth "The width of the drawn image"
+ @param destHeight "The height of the drawn image"
+ @param sourceRect "The portion of the texture to draw as an image. Negative values for the width and height will flip the image"
+*>
+fn void rlImGuiImageRect(Texture* image, int destWidth, int destHeight, Rectangle sourceRect)
+{
+    if (!image) {
+        return;
+    }
+    
+    if (global_context) {
+        imgui::set_current_context(global_context);
+    }
+    
+    ImVec2 uv0;
+    ImVec2 uv1;
+
+    if (sourceRect.width < 0)
+    {
+        uv0.x = -((float)sourceRect.x / image.width);
+        uv1.x = (uv0.x - (float)(math::abs(sourceRect.width) / image.width));
+    }
+    else
+    {
+        uv0.x = (float)sourceRect.x / image.width;
+        uv1.x = uv0.x + (float)(sourceRect.width / image.width);
+    }
+
+    if (sourceRect.height < 0)
+    {
+        uv0.y = -((float)sourceRect.y / image.height);
+        uv1.y = (uv0.y - (float)(math::abs(sourceRect.height) / image.height));
+    }
+    else
+    {
+        uv0.y = (float)sourceRect.y / image.height;
+        uv1.y = uv0.y + (float)(sourceRect.height / image.height);
+    }
+
+    imgui::image((ImTextureID)image, ImVec2{(float)(destWidth), (float)(destHeight)}, uv0, uv1);
+}
+
+<*
+ Draws a render texture as an image an ImGui Context, automatically flipping the Y axis so it will show correctly on screen
+ @param image "The render texture to draw"
+*>
+fn void rlImGuiImageRenderTexture(RenderTexture* image)
+{
+    if (!image) {
+        return;
+    }
+    
+    if (global_context) {
+        imgui::set_current_context(global_context);
+    }
+    
+    rlImGuiImageRect(&image.texture, image.texture.width, image.texture.height, Rectangle{ 0,0, (float)(image.texture.width), -(float)(image.texture.height) });
+}
+
+<*
+ Draws a render texture as an image an ImGui Context, automatically flipping the Y axis so it will show correctly on screen
+ Fits the render texture to the available content area
+ @param image "The render texture to draw"
+ @param center "When true the image will be centered in the content area"
+*>
+fn void rlImGuiImageRenderTextureFit(RenderTexture* image, bool center)
+{
+    if (!image) {
+        return;
+    }
+    
+    if (global_context) {
+        imgui::set_current_context(global_context);
+    }
+
+    ImVec2 area = imgui::get_content_region_avail();
+
+    float scale =  area.x / image.texture.width;
+
+    float y = image.texture.height * scale;
+    if (y > area.y)
+    {
+        scale = area.y / image.texture.height;
+    }
+
+    int sizeX = (int)(image.texture.width * scale);
+    int sizeY = (int)(image.texture.height * scale);
+
+    if (center)
+    {
+        imgui::set_cursor_pos_x(0);
+        imgui::set_cursor_pos_x(area.x/2.0f - sizeX/2.0f);
+        imgui::set_cursor_pos_y(imgui::get_cursor_pos_y() + (area.y / 2.0f - sizeY / 2.0f));
+    }
+
+    rlImGuiImageRect(&image.texture, sizeX, sizeY, Rectangle{ 0,0, (float)(image.texture.width), -(float)(image.texture.height) });
+}
+
+<*
+ Draws a texture as an image button in an ImGui context. Uses the current ImGui cursor position and the full size of the texture
+
+ return True if the button was clicked
+ @param name "The display name and ImGui ID for the button"
+ @param image "The texture to draw"
+*>
+fn bool rlImGuiImageButton(ZString name, Texture* image)
+{
+    if (!image) {
+        return false;
+    }
+    
+    if (global_context) {
+        imgui::set_current_context(global_context);
+    }
+    
+    return imgui::image_button(name, (ImTextureID)image, ImVec2{(float)(image.width), (float)(image.height)});
+}
+
+<*
+ Draws a texture as an image button in an ImGui context. Uses the current ImGui cursor position and the specified size.
+ return True if the button was clicked
+ @param name "The display name and ImGui ID for the button"
+ @param image "The texture to draw"
+ @param size "The size of the button"
+*>
+fn bool rlImGuiImageButtonSize(ZString name, Texture* image, ImVec2 size)
+{
+    if (!image) {
+        return false;
+    }
+
+    if (global_context) {
+        imgui::set_current_context(global_context);
+    }
+   
+    return imgui::image_button(name, (ImTextureID)image, size);
 }
 
