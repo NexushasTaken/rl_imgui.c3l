@@ -83,17 +83,17 @@ fn void reload_fonts()
     io.fonts.tex_id = (ImTextureID)fontTexture;
 }
 
-fn ZString getClipTextCallback(ImGuiContext*) @private
+fn ZString getClipTextCallback(ImGuiContext*) @local
 {
     return rl::getClipboardText();
 }
 
-fn void setClipTextCallback(ImGuiContext*, ZString text) @private
+fn void setClipTextCallback(ImGuiContext*, ZString text) @local
 {
     rl::setClipboardText(text);
 }
 
-fn void imGuiNewFrame(float deltaTime) @private
+fn void imGuiNewFrame(float deltaTime) @local
 {
     ImGuiIO* io = imgui::get_io();
 
@@ -156,7 +156,7 @@ $endif
     }
 }
 
-fn void imGuiTriangleVert(ImDrawVert* idx_vert) @private
+fn void imGuiTriangleVert(ImDrawVert* idx_vert) @local
 {
     Color* c;
     c = (Color*)&idx_vert.col;
@@ -165,7 +165,7 @@ fn void imGuiTriangleVert(ImDrawVert* idx_vert) @private
     rlgl::vertex2f(idx_vert.pos.x, idx_vert.pos.y);
 }
 
-fn void imGuiRenderTriangles(uint count, int indexStart, vector::ImVector(<ImDrawIdx>)* indexBuffer, vector::ImVector(<ImDrawVert>)* vertBuffer, void* texturePtr) @private
+fn void imGuiRenderTriangles(uint count, int indexStart, vector::ImVector(<ImDrawIdx>)* indexBuffer, vector::ImVector(<ImDrawVert>)* vertBuffer, void* texturePtr) @local
 {
     if (count < 3) {
         return;
@@ -195,7 +195,7 @@ fn void imGuiRenderTriangles(uint count, int indexStart, vector::ImVector(<ImDra
     rlgl::end();
 }
 
-fn void enableScissor(float x, float y, float width, float height) @private
+fn void enableScissor(float x, float y, float width, float height) @local
 {
     rlgl::enableScissorTest();
     ImGuiIO* io = imgui::get_io();
@@ -215,7 +215,7 @@ $endif
         (int)(height * scale.y));
 }
 
-fn void setupMouseCursors() @private
+fn void setupMouseCursors() @local
 {
     mouse_cursor_map[imgui::MOUSE_CURSOR_ARROW] = rl::MOUSE_CURSOR_ARROW;
     mouse_cursor_map[imgui::MOUSE_CURSOR_TEXT_INPUT] = rl::MOUSE_CURSOR_IBEAM;
@@ -272,7 +272,7 @@ $endif
 }
 
 
-fn void setupKeymap() @private
+fn void setupKeymap() @local
 {
     if (!raylib_keymap.is_empty()) {
         return;
@@ -386,7 +386,7 @@ fn void setupKeymap() @private
     raylib_keymap[rl::KEY_KP_EQUAL] = imgui::KEY_KEYPAD_EQUAL;
 }
 
-fn void setupGlobals() @private
+fn void setupGlobals() @local
 {
     last_frame_focused = rl::isWindowFocused();
     last_control_pressed = false;
